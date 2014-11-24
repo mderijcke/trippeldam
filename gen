@@ -1,0 +1,86 @@
+#!/usr/bin/env php
+<?php
+require('libs/Smarty.class.php');
+
+function cpr($src, $dst) {
+	if (!is_dir($src)) {
+		if (!is_dir(dirname($dst))) {
+			mkdir(dirname($dst), 0777, true);
+		}
+
+		copy($src, $dst);
+		return;
+	}
+
+	$files = array_diff(scandir($src), array('.', '..'));
+	foreach ($files as $file) {
+		cpr($src . '/' . $file, $dst . '/' . $file);
+    }
+}
+
+function rmdirf($dir) {
+	if (!is_dir($dir)) {
+	 	unlink($dir);
+		return;
+	}
+
+	$files = array_diff(scandir($dir), array('.', '..'));
+	foreach ($files as $file) {
+		rmdirf($dir . '/' . $file);
+	}
+
+	rmdir($dir);
+}
+
+rmdirf('out');
+mkdir('out');
+
+$dir = new RecursiveIteratorIterator(new RecursiveDirectoryIterator('site/pages'));
+
+foreach ($dir as $file) {
+	if (substr($file, -4) != ".tpl") {
+		continue;
+	}
+
+	$fd = fopen($file, 'r');
+	$smarty = new Smarty;
+
+	$headers = array();
+	while (!feof($fd)) {
+		$line = trim(fgets($fd), "\r\n");
+
+		if (empty($line)) {
+			break;
+		}
+		list($key, $value) = explode(':', $line);
+		$headers[strtolower($key)] = ltrim($value, ' ');
+	}
+
+	if (!isset($headers['output']) || empty($headers['output'])) {
+		continue;
+	}
+
+	$smarty->assign('headers', $headers);
+	$body = $smarty->fetch('string:' . stream_get_contents($fd));
+
+	fclose($fd);
+	$smarty->assign('body', $body);
+
+	if (isset($headers['template']) && file_exists($tplfile = 'site/' . $headers['template'])) {
+		$body = $smarty->fetch($tplfile);
+	}
+
+	$filename = 'out/' . $headers['output'];
+
+	if (!is_dir(dirname($filename))) {
+		mkdir(dirname($filename), 0777, true);
+	}
+
+	file_put_contents($filename, $body);
+}
+
+$files = array_diff(scandir('site/static'), array('.', '..'));
+foreach ($files as $file) {
+	cpr('site/static/' . $file, 'out/' . $file);
+}
+
