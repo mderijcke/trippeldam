@@ -8,7 +8,7 @@ Title: Herunterladen von Dateien
 Wen er frage hat dan kannst du uns einer e-mail senden. Diese Dateien sind hauptsächlich Kürzlich Newsletter.</p>
 
 <ul>
-	<li><a href="files/Brief1.zip">Newsletter1</a></li>
-	<li><a href="files/Brief2.zip">Newsletter2</a></li>
+	<li><a href="files/brief1.zip">Newsletter1</a></li>
+	<li><a href="files/brief2.zip">Newsletter2</a></li>
 	<li><a href="files/Brief3.zip">Newsletter3</a></li>
 </ul>
